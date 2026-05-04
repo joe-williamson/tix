@@ -1,0 +1,55 @@
+defaults:
+  user: your.username  # edit this to your Jira username
+  hours: 12
+  env: prod
+
+profiles:
+  c9-prod:
+    provider: foxpass
+    group: cloud9-prod-ssh
+    summary_prefix: "C9 Prod"
+
+  salt-prod:
+    provider: foxpass
+    group: salt-prod-ssh
+    summary_prefix: "Salt Prod"
+
+  prod-cluster:
+    provider: gcp
+    group: gke-prod-cluster-admins
+    project: perzo-prod
+    namespace: default
+    summary_prefix: "Prod Cluster"
+
+  prod-datastore:
+    provider: gcp
+    group: gke-prod-datastore-admins
+    project: perzo-prod-datastore
+    namespace: default
+    summary_prefix: "Prod Datastore"
+
+  prod-secrets:
+    provider: gcp
+    group: gke-prod-secrets-admins
+    project: perzo-prod-secrets
+    namespace: default
+    summary_prefix: "Prod Secrets"
+
+  tlm-prod:
+    provider: entra
+    group: tlm-prod-admins
+    summary_prefix: "TLM Prod"
+
+  tlm-uat:
+    provider: entra
+    group: tlm-uat-admins
+    env: uat
+    summary_prefix: "TLM UAT"
+
+  uat-secrets:
+    provider: gcp
+    group: gke-uat-secrets-admins
+    project: perzo-uat-secrets
+    namespace: default
+    env: uat
+    summary_prefix: "UAT Secrets"

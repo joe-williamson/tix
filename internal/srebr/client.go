@@ -278,7 +278,7 @@ type SearchIssue struct {
 // SearchIssues runs a JQL query and returns matching issues.
 func (c *Client) SearchIssues(jql string, maxResults int) (*SearchResult, error) {
 	endpoint := fmt.Sprintf(
-		"%s/rest/api/2/search?jql=%s&maxResults=%d&fields=summary,status,priority,assignee,updated",
+		"%s/rest/api/3/search/jql?jql=%s&maxResults=%d&fields=summary,status,priority,assignee,updated",
 		c.baseURL,
 		url.QueryEscape(jql),
 		maxResults,

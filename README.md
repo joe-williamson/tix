@@ -27,15 +27,17 @@ token     = <atlassian-api-token>
 
 Generate a token at https://id.atlassian.com/manage-profile/security/api-tokens.
 
-### 2. Breakglass profiles
+### 2. Breakglass profiles (optional)
 
-Copy the team profiles file to `~/.bg_profiles.yaml`:
+`tix` ships with a built-in set of team profiles so `tix list` and `tix bg` work out of the box.
+
+To customize (e.g. set your default username), copy the template to `~/.bg_profiles.yaml`:
 
 ```bash
 cp bg_profiles.yaml ~/.bg_profiles.yaml
 ```
 
-Edit `defaults.user` to your username.
+Then edit `defaults.user` to your Jira username. Your local file takes precedence over the built-in template.
 
 ## Use
 

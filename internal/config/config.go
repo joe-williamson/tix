@@ -3,6 +3,8 @@ package config
 
 import (
 	"bufio"
+	_ "embed"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +12,9 @@ import (
 
 	"gopkg.in/yaml.v3"
 )
+
+//go:embed bg_profiles.yaml
+var defaultProfilesYAML []byte
 
 // Creds holds Jira authentication credentials.
 type Creds struct {
@@ -41,17 +46,23 @@ func DefaultProfilesPath() string {
 	return filepath.Join(home, ".bg_profiles.yaml")
 }
 
-// Load reads defaults and named profiles from ~/.bg_profiles.yaml.
-// Override the path with the BG_PROFILES environment variable.
+// Load reads defaults and named profiles from ~/.bg_profiles.yaml (or $BG_PROFILES).
+// Falls back to the embedded default template if the file doesn't exist.
 func Load() (Profile, map[string]Profile, error) {
 	path := os.Getenv("BG_PROFILES")
 	if path == "" {
 		path = DefaultProfilesPath()
 	}
+
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return Profile{}, nil, fmt.Errorf("cannot read %s: %w\nCopy the template to ~/.bg_profiles.yaml and edit as needed.", path, err)
+		if !errors.Is(err, os.ErrNotExist) {
+			return Profile{}, nil, fmt.Errorf("cannot read %s: %w", path, err)
+		}
+		// File not found — use embedded template.
+		data = defaultProfilesYAML
 	}
+
 	var f profilesFile
 	if err := yaml.Unmarshal(data, &f); err != nil {
 		return Profile{}, nil, fmt.Errorf("parse %s: %w", path, err)
