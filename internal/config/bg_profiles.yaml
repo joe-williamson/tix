@@ -4,52 +4,48 @@ defaults:
   env: prod
 
 profiles:
+  # ── C9 ──────────────────────────────────────────────────
   c9-prod:
     provider: foxpass
-    group: cloud9-prod-ssh
-    summary_prefix: "C9 Prod"
+    group: c9prod-sre-breakglass
 
+  # ── Symphony - Legacy Salt ──────────────────────────────
   salt-prod:
     provider: foxpass
-    group: salt-prod-ssh
-    summary_prefix: "Salt Prod"
+    group: foxpass_sre_temp
 
+  # ── Symphony - GKE ──────────────────────────────────────
   prod-cluster:
     provider: gcp
-    group: gke-prod-cluster-admins
-    project: perzo-prod
-    namespace: default
-    summary_prefix: "Prod Cluster"
+    group: sym-sso-gcp-cluster-breakglass
+    project: sym-prod-use4-gke-01
+    namespace: unused
 
   prod-datastore:
     provider: gcp
-    group: gke-prod-datastore-admins
-    project: perzo-prod-datastore
-    namespace: default
-    summary_prefix: "Prod Datastore"
+    group: sym-sso-gcp-datastore-breakglass
+    project: sym-prod-mr-tools-01
+    namespace: unused
 
   prod-secrets:
     provider: gcp
-    group: gke-prod-secrets-admins
-    project: perzo-prod-secrets
-    namespace: default
-    summary_prefix: "Prod Secrets"
-
-  tlm-prod:
-    provider: entra
-    group: tlm-prod-admins
-    summary_prefix: "TLM Prod"
-
-  tlm-uat:
-    provider: entra
-    group: tlm-uat-admins
-    env: uat
-    summary_prefix: "TLM UAT"
+    group: sym-sso-gcp-sbe-admin-breakglass
+    project: sym-prod-use4-data-01
+    namespace: unused
 
   uat-secrets:
     provider: gcp
-    group: gke-uat-secrets-admins
-    project: perzo-uat-secrets
-    namespace: default
+    group: sym-sso-gcp-sbe-admin-breakglass
+    project: sym-uat-use4-data-01
+    namespace: unused
     env: uat
-    summary_prefix: "UAT Secrets"
+
+  # ── TLM / Entra ─────────────────────────────────────────
+  tlm-prod:
+    provider: entra
+    group: PMP_DUO_SRE_PROD_BR
+
+  tlm-uat:
+    provider: entra
+    group: PMP_DUO_SRE_UAT_BR
+    env: uat
