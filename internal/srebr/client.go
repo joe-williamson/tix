@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/joe-williamson/tix/internal/config"
 )
@@ -254,4 +255,52 @@ func equalFold(a, b string) bool {
 		}
 	}
 	return true
+}
+
+// SearchResult holds a list of matching issues from a JQL query.
+type SearchResult struct {
+	Total  int           `json:"total"`
+	Issues []SearchIssue `json:"issues"`
+}
+
+// SearchIssue is a single result row.
+type SearchIssue struct {
+	Key    string `json:"key"`
+	Fields struct {
+		Summary  string `json:"summary"`
+		Status   struct{ Name string `json:"name"` } `json:"status"`
+		Priority struct{ Name string `json:"name"` } `json:"priority"`
+		Assignee *struct{ DisplayName string `json:"displayName"` } `json:"assignee"`
+		Updated  string `json:"updated"`
+	} `json:"fields"`
+}
+
+// SearchIssues runs a JQL query and returns matching issues.
+func (c *Client) SearchIssues(jql string, maxResults int) (*SearchResult, error) {
+	endpoint := fmt.Sprintf(
+		"%s/rest/api/2/search?jql=%s&maxResults=%d&fields=summary,status,priority,assignee,updated",
+		c.baseURL,
+		url.QueryEscape(jql),
+		maxResults,
+	)
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", c.auth)
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("http: %w", err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("JIRA API error (%d): %s", resp.StatusCode, body)
+	}
+	var result SearchResult
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("parse: %w", err)
+	}
+	return &result, nil
 }

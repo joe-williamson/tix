@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"github.com/joe-williamson/tix/internal/config"
@@ -22,7 +23,7 @@ func main() {
   tix info ESS-47181`,
 	}
 
-	root.AddCommand(bgCmd(), listCmd(), infoCmd())
+	root.AddCommand(bgCmd(), listCmd(), infoCmd(), searchCmd())
 
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
@@ -164,5 +165,80 @@ func infoCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolVar(&showComments, "comments", false, "Also display ticket comments")
+	return cmd
+}
+
+// ── search ────────────────────────────────────────────────────────────────────
+
+func searchCmd() *cobra.Command {
+	var (
+		flagProject string
+		flagMax     int
+		flagJQL     string
+	)
+	cmd := &cobra.Command{
+		Use:   "search <phrase>",
+		Short: "Search Jira tickets by text",
+		Example: `  tix search "oom killer"
+  tix search "kinesis" --project ESS
+  tix search "cloudendure" --max 50
+  tix search --jql "project = ESS AND text ~ \"runbook\" AND status != Done"`,
+		Args: cobra.ArbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			creds, err := config.LoadJiraCreds()
+			if err != nil {
+				return err
+			}
+
+			var jql string
+			if flagJQL != "" {
+				jql = flagJQL
+			} else {
+				if len(args) == 0 {
+					return fmt.Errorf("provide a search phrase or use --jql")
+				}
+				phrase := strings.Join(args, " ")
+				jql = fmt.Sprintf(`project = %s AND text ~ "%s" ORDER BY updated DESC`, flagProject, phrase)
+			}
+
+			client := srebr.NewClient(creds)
+			result, err := client.SearchIssues(jql, flagMax)
+			if err != nil {
+				return err
+			}
+
+			phrase := strings.Join(args, " ")
+			if flagJQL != "" {
+				phrase = flagJQL
+			}
+			fmt.Printf("\n[%d results for \"%s\"]\n\n", result.Total, phrase)
+
+			w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+			fmt.Fprintln(w, "KEY\tSTATUS\tASSIGNEE\tUPDATED\tSUMMARY")
+			fmt.Fprintln(w, "---\t------\t--------\t-------\t-------")
+			for _, issue := range result.Issues {
+				assignee := "unassigned"
+				if issue.Fields.Assignee != nil {
+					assignee = issue.Fields.Assignee.DisplayName
+				}
+				updated := issue.Fields.Updated
+				if len(updated) >= 10 {
+					updated = updated[:10]
+				}
+				summary := issue.Fields.Summary
+				if len(summary) > 60 {
+					summary = summary[:57] + "..."
+				}
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n",
+					issue.Key, issue.Fields.Status.Name, assignee, updated, summary)
+			}
+			w.Flush()
+			fmt.Println()
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&flagProject, "project", "ESS", "Jira project key to search within")
+	cmd.Flags().IntVar(&flagMax, "max", 25, "Maximum results to return")
+	cmd.Flags().StringVar(&flagJQL, "jql", "", "Raw JQL query (overrides phrase search)")
 	return cmd
 }
