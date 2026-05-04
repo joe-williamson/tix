@@ -11,7 +11,7 @@ make build        # produces ./tix binary
 make install      # installs to $GOPATH/bin
 ```
 
-Requires Go 1.24+.
+Requires Go 1.24.1+ (Go 1.24.0 has a known compiler bug — upgrade with `go install golang.org/dl/go1.24.5@latest && go1.24.5 download`).
 
 ## Setup
 
