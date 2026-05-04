@@ -4,15 +4,23 @@ package srebr
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
-	"github.com/symphony/srebr-bg/internal/config"
+	"github.com/joe-williamson/tix/internal/config"
 )
 
 const (
 	project = "SREBR"
-	jiraURL = "https://perzoinc.atlassian.net"
+	defaultJiraURL = "https://perzoinc.atlassian.net"
 )
+
+func getJiraURL() string {
+	if u := os.Getenv("JIRA_URL"); u != "" {
+		return u
+	}
+	return defaultJiraURL
+}
 
 // hoursMap maps allowed hour values to their Jira customfield option IDs.
 var hoursMap = map[int]string{
@@ -103,7 +111,7 @@ func CreateTicket(ctx context.Context, creds config.Creds, p config.Profile, sou
 		return nil, fmt.Errorf("create ticket: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/browse/%s", jiraURL, key)
+	url := fmt.Sprintf("%s/browse/%s", getJiraURL(), key)
 	fmt.Printf("Created: %s\n", url)
 
 	for _, src := range sources {
@@ -139,7 +147,7 @@ func InspectTickets(ctx context.Context, creds config.Creds, keys []string, show
 
 		fmt.Println(sep)
 		fmt.Printf("key:         %s\n", issue.Key)
-		fmt.Printf("url:         %s/browse/%s\n", jiraURL, issue.Key)
+		fmt.Printf("url:         %s/browse/%s\n", getJiraURL(), issue.Key)
 		fmt.Printf("summary:     %s\n", issue.Fields.Summary)
 		fmt.Printf("issuetype:   %s\n", issue.Fields.IssueType.Name)
 		fmt.Printf("status:      %s\n", issue.Fields.Status.Name)

@@ -127,7 +127,11 @@ func LoadJiraCreds() (Creds, error) {
 	}
 	defer f.Close()
 
-	creds := Creds{BaseURL: "https://perzoinc.atlassian.net"}
+	baseURL := os.Getenv("JIRA_URL")
+	if baseURL == "" {
+		baseURL = "https://perzoinc.atlassian.net"
+	}
+	creds := Creds{BaseURL: baseURL}
 	inSection := false
 
 	scanner := bufio.NewScanner(f)

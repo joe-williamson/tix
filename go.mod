@@ -1,4 +1,4 @@
-module github.com/symphony/srebr-bg
+module github.com/joe-williamson/tix
 
 go 1.24.0
 

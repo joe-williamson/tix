@@ -9,7 +9,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/symphony/srebr-bg/internal/config"
+	"github.com/joe-williamson/tix/internal/config"
 )
 
 // Client is a minimal Jira REST API v2 client.

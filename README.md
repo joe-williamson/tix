@@ -1,45 +1,56 @@
-# bg — SRE Breakglass Tickets
+# tix — SRE Breakglass Tickets
 
 Create, link, and approve SREBR tickets in one command.
 
-## Install
-
-Download the latest binary for your OS from [releases][] and put it on your PATH:
+## Build
 
 ```bash
-curl -L https://.../bg_linux_amd64.tar.gz | tar xz
-sudo mv bg /usr/local/bin/
+git clone https://github.com/joe-williamson/tix.git
+cd tix
+make build        # produces ./tix binary
+make install      # installs to $GOPATH/bin
 ```
+
+Requires Go 1.24+.
 
 ## Setup
 
-You need `~/.jira_config` with your Atlassian API token (you probably already have this):
+### 1. Jira credentials
+
+`tix` reads `~/.jira_config` automatically — no path configuration needed. Create it if you don't have it:
 
 ```ini
 [jira]
-user_name = your.name@symphony.com
+user_name = your.name@example.com
 token     = <atlassian-api-token>
 ```
 
 Generate a token at https://id.atlassian.com/manage-profile/security/api-tokens.
 
+### 2. Breakglass profiles
+
+Copy the team profiles file to `~/.bg_profiles.yaml`:
+
+```bash
+cp bg_profiles.yaml ~/.bg_profiles.yaml
+```
+
+Edit `defaults.user` to your username.
+
 ## Use
 
 ```bash
-bg list                              # see available profiles
-bg create c9-prod ESS-46119          # default 12h
-bg create prod-cluster ESS-46121 --hours 24
-bg info SREBR-20015                  # inspect existing ticket
-bg create c9-prod ESS-46119 --dry-run
+tix list                                    # see available profiles
+tix bg c9-prod ESS-46119                    # create breakglass ticket (default 12h)
+tix bg prod-cluster ESS-46121 --hours 24   # override hours
+tix bg tlm-prod ESS-46120 --dry-run        # preview without creating
+tix info ESS-46119                          # inspect a ticket
+tix info ESS-46119 --comments              # include comments
 ```
 
-## Personal overrides
+## Environment overrides
 
-To override defaults (e.g. preferred hours), create `~/.bg_profiles.yaml`:
-
-```yaml
-defaults:
-  hours: 8
-```
-
-The team profile list is baked into the binary — to add or change profiles, open a PR in this repo.
+| Variable | Default | Purpose |
+|---|---|---|
+| `JIRA_URL` | `https://perzoinc.atlassian.net` | Override Jira instance |
+| `BG_PROFILES` | `~/.bg_profiles.yaml` | Override profiles file path |
