@@ -66,9 +66,17 @@ func runBG(cmd *cobra.Command, args []string) error {
 	profileName := args[0]
 	sources := args[1:]
 
+	creds, err := config.LoadJiraCreds()
+	if err != nil {
+		return err
+	}
+
 	defaults, profiles, err := config.Load()
 	if err != nil {
 		return err
+	}
+	if defaults.User == "" || defaults.User == "your.username" {
+		defaults.User = config.UserFromEmail(creds.User)
 	}
 
 	overrides := config.Profile{
@@ -97,11 +105,6 @@ func runBG(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	creds, err := config.LoadJiraCreds()
-	if err != nil {
-		return err
-	}
-
 	_, err = srebr.CreateTicket(context.Background(), creds, p, sources)
 	return err
 }
@@ -116,6 +119,11 @@ func listCmd() *cobra.Command {
 			defaults, profiles, err := config.Load()
 			if err != nil {
 				return err
+			}
+			if defaults.User == "" || defaults.User == "your.username" {
+				if creds, cerr := config.LoadJiraCreds(); cerr == nil {
+					defaults.User = config.UserFromEmail(creds.User)
+				}
 			}
 
 			fmt.Printf("Available profiles (default %d hours):\n\n", defaults.Hours)

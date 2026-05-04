@@ -70,6 +70,15 @@ func Load() (Profile, map[string]Profile, error) {
 	return f.Defaults, f.Profiles, nil
 }
 
+// UserFromEmail returns the local part of an email address (before '@').
+// If the string has no '@', it is returned unchanged.
+func UserFromEmail(email string) string {
+	if i := strings.Index(email, "@"); i > 0 {
+		return email[:i]
+	}
+	return email
+}
+
 // Resolve merges defaults → named profile → CLI overrides into a final Profile.
 func Resolve(name string, defaults Profile, profiles map[string]Profile, overrides Profile) (Profile, error) {
 	p, ok := profiles[name]
